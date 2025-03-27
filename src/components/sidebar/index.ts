@@ -1,3 +1,3 @@
-import SideBar from "./Sidebar";
+import SideBar from "@components/sidebar/sidebar";
 
 export { SideBar };

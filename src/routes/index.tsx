@@ -2,11 +2,11 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "@/App";
 import Login from "@/features/Login";
 import { Profile } from "@/features/Profile/Profile";
-import Campaigns from "@/features/Campaigns";
 import Signup from "@/features/Signup";
 import RequestPasswordReset from "@/features/RequestPasswordReset";
 import About from "@/features/About";
 import { PublicLayout } from "@/layouts/PublicLayout";
+import Plans from "@/features/Plans";
 
 export const router = createBrowserRouter([
     {
@@ -32,16 +32,16 @@ export const router = createBrowserRouter([
                 path: "/request-password-reset",
                 element: <RequestPasswordReset />
             },
+            {
+                path: "/pricing",
+                element: <Plans />
+            }
         ]
     },
     {
         path: "/app",
         element: <App />,
         children: [
-            {
-                path: "campaigns",
-                element: <Campaigns />
-            },
             {
                 path: "profile",
                 element: <Profile />

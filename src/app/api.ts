@@ -1,19 +1,14 @@
 import { logout } from '@/utils/storage';
-import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-interface ImportMeta {
-    env: {
-        VITE_API_URL: string;
-    };
-}
+const client = axios.create({ 
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000'
+});
 
-const client = axios.create({ baseURL: ((import.meta as unknown) as ImportMeta).env.VITE_API_URL });
-
-const TokenInterceptor = (config: AxiosRequestConfig): AxiosRequestConfig => {
+const TokenInterceptor = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     if (config.headers) {
         config.headers.Authorization = `Bearer ${localStorage.token}`;
     }
-
     return config;
 };
 

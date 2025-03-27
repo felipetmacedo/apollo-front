@@ -7,6 +7,7 @@ import Login from '@features/Login';
 import Signup from '@features/Signup';
 import ResetPassword from '@features/ResetPassword';
 import RequestPasswordReset from '@features/RequestPasswordReset';
+import Dashboard from '@features/Dashboard'; 
 
 import PublicRouteGuard from '@/guards/Public';
 import PrivateRouteGuard from '@/guards/Private';
@@ -49,6 +50,10 @@ export const createRouter = () =>
                         {
                             path: "/profile",
                             element: <Profile />,
+                        },
+                        {
+                            path: "/dashboard",
+                            element: <Dashboard />,
                         }
                     ],
                 }
