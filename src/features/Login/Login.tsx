@@ -100,7 +100,7 @@ export default function Login() {
 											type="button"
 											variant="ghost"
 											size="sm"
-											className="absolute right-1 top-0.5 h-8 w-8 px-0"
+											className="absolute right-1 top-1 h-8 w-8 px-0"
 											onClick={() =>
 												setShowPassword(!showPassword)
 											}
@@ -139,15 +139,6 @@ export default function Login() {
 										</Link>
 									</span>
 								</div>
-								<span className="text-sm text-muted-foreground">
-									Não tem uma conta ainda?{' '}
-									<Link
-										to="/signup"
-										className="font-medium text-primary hover:underline"
-									>
-										Criar conta
-									</Link>
-								</span>
 							</div>
 						</CardContent>
 					</Card>
