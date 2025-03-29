@@ -137,7 +137,7 @@ export function Subscription({ billingHistory }: SubscriptionProps): ReactElemen
 
     if (!subscriptionInfo) {
         toast.error('Error fetching subscription info')
-        navigate('/app/profile')
+        navigate('/profile')
         return <></>
     }
 

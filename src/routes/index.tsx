@@ -8,6 +8,7 @@ import { PublicLayout } from "@/layouts/PublicLayout";
 import Plans from "@/features/Plans";
 import Dashboard from "@/features/Dashboard"
 import Teams from "@/features/Teams";
+import Users from "@/features/Users";
 
 export const router = createBrowserRouter([
     {
@@ -36,7 +37,7 @@ export const router = createBrowserRouter([
         ]
     },
     {
-        path: "/app",
+        path: "/",
         element: <App />,
         children: [
             {
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
             {
                 path: "teams",
                 element: <Teams />
+            },
+            {
+                path: "users",
+                element: <Users />
             }
         ]
     }

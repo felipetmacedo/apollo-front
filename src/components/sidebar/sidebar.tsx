@@ -44,7 +44,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             if (userInfo.permissions.some(perm => perm.name === 'READ' && perm.module === 'TEAMS')) {
                 permissionLinks.push({
                     label: "Associações",
-                    href: "/app/teams",
+                    href: "/teams",
                     icon: <UsersRound className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
                 });
             }
@@ -52,7 +52,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             if (userInfo.permissions.some(perm => perm.name === 'READ' && perm.module === 'USERS')) {
                 permissionLinks.push({
                     label: "Usuários",
-                    href: "/app/users",
+                    href: "/users",
                     icon: <Users className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
                 });
             }
@@ -61,7 +61,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             if (userInfo.permissions.some(perm => perm.name === 'READ' && perm.module === 'REQUESTS')) {
                 permissionLinks.push({
                     label: "Solicitações",
-                    href: "/app/requests",
+                    href: "/requests",
                     icon: <FileText className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
                 });
             }
@@ -74,7 +74,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
     const standardLinks: NavLink[] = [
         {
             label: "Dashboard",
-            href: "/app/dashboard",
+            href: "/dashboard",
             icon: <LayoutDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
         },
     ];
@@ -82,7 +82,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
     const profileAndLogoutLinks: NavLink[] = [
         {
             label: "Perfil",
-            href: "/app/profile",
+            href: "/profile",
             icon: <UserCog className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
         },
         {
@@ -146,7 +146,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                         <SidebarLink
                             link={{
                                 label: open ? userInfo?.name || "" : "",
-                                href: "/app/profile",
+                                href: "/profile",
                                 icon: (
                                     <span className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0 ml-2 mb-1">
                                         {userInfo?.name?.charAt(0)}

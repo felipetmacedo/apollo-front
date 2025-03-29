@@ -28,7 +28,7 @@ export default function LoginContainer() {
 
       saveSession({ token: response.token });
 
-      navigate("/app/dashboard");
+      navigate("/dashboard");
       toast.success("Successfully logged in!");
     } catch {
       toast.error("Email or password is incorrect!");
