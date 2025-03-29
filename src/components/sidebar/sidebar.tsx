@@ -2,46 +2,99 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { UserCog, LogOut, ChartCandlestick } from "lucide-react";
+import { UserCog, LogOut, LayoutDashboard, Users, FileText, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { logout } from "@/utils/storage";
 import { useUserStore } from "@/stores/user.store";
-import imgLogo from "@/assets/img/bright-high-resolution-logo-transparent.svg";
-import monogramLogo from "@/assets/img/monogram.svg";
+import ApolloMonogram from "@/assets/img/monogram-apollo.png";
+import ApolloLogo from "@/assets/img/logo-apollo.png";
 import { motion } from "framer-motion";
+
+// Define a common interface for all navigation links
+interface NavLink {
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+    action?: () => Promise<void> | void;
+}
 
 export default function SideBar({ children }: { children: React.ReactNode }) {
     const { userInfo, clearUserInfo } = useUserStore();
     const navigate = useNavigate();
     const [open, setOpen] = useState(true);
 
+    console.log(userInfo);
+
     const handleLogout = async () => {
         logout()
 
         clearUserInfo();
         navigate("/login");
-        toast.success("Successfully logged out!")
+        toast.success("Deslogado com sucesso!")
     };
 
-    const links = [
+    // Generate dynamic links based on permissions
+    const getPermissionLinks = () => {
+        const permissionLinks: NavLink[] = [];
+        
+        if (userInfo?.permissions) {
+
+            // Check for READ TEAMS permission
+            if (userInfo.permissions.some(perm => perm.name === 'READ' && perm.module === 'TEAMS')) {
+                permissionLinks.push({
+                    label: "Associações",
+                    href: "/app/teams",
+                    icon: <UsersRound className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+                });
+            }
+
+            if (userInfo.permissions.some(perm => perm.name === 'READ' && perm.module === 'USERS')) {
+                permissionLinks.push({
+                    label: "Usuários",
+                    href: "/app/users",
+                    icon: <Users className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+                });
+            }
+            
+            // Check for READ REQUESTS permission
+            if (userInfo.permissions.some(perm => perm.name === 'READ' && perm.module === 'REQUESTS')) {
+                permissionLinks.push({
+                    label: "Solicitações",
+                    href: "/app/requests",
+                    icon: <FileText className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+                });
+            }
+		}
+
+		return permissionLinks;
+	};
+
+	// Combine standard links with permission-based links
+    const standardLinks: NavLink[] = [
         {
-            label: "Campaigns",
-            href: "/campaigns",
-            icon: <ChartCandlestick className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+            label: "Dashboard",
+            href: "/app/dashboard",
+            icon: <LayoutDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
         },
+    ];
+    
+    const profileAndLogoutLinks: NavLink[] = [
         {
-            label: "Profile",
-            href: "/profile",
+            label: "Perfil",
+            href: "/app/profile",
             icon: <UserCog className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
         },
         {
-            label: "Logout",
-            href: "#",
-            icon: <LogOut className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
-            action: handleLogout,
+			label: 'Logout',
+			href: '#',
+			icon: <LogOut className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+			action: handleLogout,
         },
     ];
+    
+    // Combine all links
+    const links = [...standardLinks, ...getPermissionLinks(), ...profileAndLogoutLinks];
 
     return (
         <div className={cn("flex flex-col md:flex-row dark:bg-neutral-800 w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden", "h-screen w-screen")}>
@@ -70,23 +123,32 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
                                 <LogoIcon />
                             </motion.div>
                         </div>
-                        <div className="mt-8 flex flex-col gap-2">
-                            {links.map((link, idx) =>
-                                link.action ? (
-                                    <SidebarLink key={idx} link={link} onClick={link.action} />
-                                ) : (
-                                    <SidebarLink key={idx} link={link} />
-                                )
-                            )}
+                        <div className="mt-4 flex flex-col gap-2 ml-1">
+                        {links.map((link, idx) => {
+                            // Create a new link object without the action property
+                            const { action, ...linkWithoutAction } = link;
+                            
+                            if (action) {
+                                return (
+                                    <div key={idx} onClick={action}>
+                                        <SidebarLink 
+                                            link={linkWithoutAction}
+                                        />
+                                    </div>
+                                );
+                            }
+                            
+                            return <SidebarLink key={idx} link={linkWithoutAction} />;
+                        })}
                         </div>
                     </div>
                     <div className={cn("flex items-center transition-all duration-300", open ? "justify-start gap-2" : "justify-center w-full")}>
                         <SidebarLink
                             link={{
                                 label: open ? userInfo?.name || "" : "",
-                                href: "/profile",
+                                href: "/app/profile",
                                 icon: (
-                                    <span className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0">
+                                    <span className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0 ml-2 mb-1">
                                         {userInfo?.name?.charAt(0)}
                                     </span>
                                 ),
@@ -103,7 +165,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
 export const Logo = () => (
     <Link to="#" className="flex items-center justify-start h-full">
         <img
-            src={imgLogo}
+            src={ApolloLogo}
             alt="logo"
             className="h-6 object-contain"
         />
@@ -113,9 +175,9 @@ export const Logo = () => (
 export const LogoIcon = () => (
     <div className="flex items-center justify-center h-full">
         <img
-            src={monogramLogo}
+            src={ApolloMonogram}
             alt="logo"
-            className="h-6 w-6 object-contain"
+            className="h-8 w-8 object-contain"
         />
     </div>
 );

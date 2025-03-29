@@ -65,11 +65,11 @@ export function Subscription({ billingHistory }: SubscriptionProps): ReactElemen
                     <CardContent className="pt-6">
                         <div className="grid grid-cols-4 gap-8 mb-5 w-full items-center">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground ml-1">Plan</p>
+                                <p className="text-sm font-medium text-muted-foreground ml-1">Plano</p>
                                 <Skeleton className="h-8 w-32 mt-1" />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground ml-1">Monthly Cost</p>
+                                <p className="text-sm font-medium text-muted-foreground ml-1">Custo Mensal</p>
                                 <Skeleton className="h-8 w-24 mt-1" />
                             </div>
                             <div>
@@ -78,7 +78,7 @@ export function Subscription({ billingHistory }: SubscriptionProps): ReactElemen
                             </div>
 
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground ml-1 mt-4"></p>
+                                <p className="text-sm font-medium text-muted-foreground ml-1 mt-4">Última Fatura</p>
                                 <Skeleton className="h-10 w-64 mt-1" />
                             </div>
                         </div>
@@ -87,7 +87,7 @@ export function Subscription({ billingHistory }: SubscriptionProps): ReactElemen
 
                         <div className="grid grid-cols-4 gap-8 mb-6 mt-6 w-full">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground ml-1 mb-2">Last Bill</p>
+                                <p className="text-sm font-medium text-muted-foreground ml-1 mb-2">Última Fatura</p>
                                 <div className="flex flex-col gap-1">
                                     <Skeleton className="h-4 w-32" />
                                     <Skeleton className="h-8 w-24" />
@@ -95,7 +95,7 @@ export function Subscription({ billingHistory }: SubscriptionProps): ReactElemen
                             </div>
 
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground ml-1 mb-2">Next Payment Due</p>
+                                <p className="text-sm font-medium text-muted-foreground ml-1 mb-2">Próximo Pagamento</p>
                                 <div className="flex flex-col gap-1">
                                     <Skeleton className="h-4 w-32" />
                                     <Skeleton className="h-8 w-24" />
@@ -113,7 +113,7 @@ export function Subscription({ billingHistory }: SubscriptionProps): ReactElemen
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle className="text-xl font-bold">Billing History</CardTitle>
+                        <CardTitle className="text-xl font-bold">Histórico de Faturas</CardTitle>
                         <Skeleton className="h-9 w-32" />
                     </CardHeader>
                     <Separator />
@@ -137,7 +137,7 @@ export function Subscription({ billingHistory }: SubscriptionProps): ReactElemen
 
     if (!subscriptionInfo) {
         toast.error('Error fetching subscription info')
-        navigate('/profile')
+        navigate('/app/profile')
         return <></>
     }
 

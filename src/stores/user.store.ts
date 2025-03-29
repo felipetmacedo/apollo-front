@@ -8,6 +8,11 @@ export interface UserInfo {
   phone_number: string
   isAdmin: boolean
   isProPlan: boolean
+  permissions: {
+    id: string
+    name: string
+    module: string
+  }[]
   team: {
     name: string
   }
