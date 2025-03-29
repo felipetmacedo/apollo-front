@@ -6,7 +6,8 @@ import RequestPasswordReset from "@/features/RequestPasswordReset";
 import About from "@/features/About";
 import { PublicLayout } from "@/layouts/PublicLayout";
 import Plans from "@/features/Plans";
-import Dashboard from "@/features/Dashboard";
+import Dashboard from "@/features/Dashboard"
+import Teams from "@/features/Teams";
 
 export const router = createBrowserRouter([
     {
@@ -45,6 +46,10 @@ export const router = createBrowserRouter([
             {
                 path: "dashboard",
                 element: <Dashboard />
+            },
+            {
+                path: "teams",
+                element: <Teams />
             }
         ]
     }
