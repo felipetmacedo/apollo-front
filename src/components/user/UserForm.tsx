@@ -44,10 +44,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export interface UserFormData {
-  id?: string;
   name: string;
   email: string;
-  password: string;
   phone_number?: string;
   document: string;
   cep: string;
@@ -67,16 +65,13 @@ interface UserFormProps {
 }
 
 const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isSubmitting }) => {
-  const isEditing = !!user?.id;
   const { lookupAddress, loading: loadingAddress } = useAddressLookup();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      id: user?.id,
       name: user?.name || '',
       email: user?.email || '',
-      password: '',
       phone_number: user?.phone_number || '',
       document: user?.document || '',
       cep: user?.cep || '',
@@ -122,17 +117,17 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isSubmittin
     }
   }, [cepValue, handleCepLookup]);
 
-  const handleSubmit = (data: FormData) => {
-    onSave(data as UserFormData);
-  };
+  const handleSubmit = useCallback(
+		(data: UserFormData) => {
+			onSave(data as UserFormData);
+		},
+		[onSave]
+	);
+
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <h2 className="text-xl font-bold">
-          {isEditing ? 'Editar Usuário' : 'Novo Usuário'}
-        </h2>
-
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -184,20 +179,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isSubmittin
                 <FormLabel>Telefone</FormLabel>
                 <FormControl>
                   <Input placeholder="(00) 00000-0000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{isEditing ? 'Nova Senha (opcional)' : 'Senha'}</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="********" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -317,7 +298,6 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isSubmittin
             type="button" 
             variant="outline" 
             onClick={onCancel}
-            disabled={isSubmitting}
           >
             Cancelar
           </Button>
@@ -325,10 +305,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isSubmittin
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditing ? 'Salvando...' : 'Criando...'}
+                Salvando...
               </>
             ) : (
-              isEditing ? 'Salvar' : 'Criar'
+              'Salvar'
             )}
           </Button>
         </div>

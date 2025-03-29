@@ -41,7 +41,6 @@ export interface UpdateUserPayload {
 export interface CreateUserPayload {
   name: string
   email: string
-  password: string
   phone_number?: string
   document: string
   cep: string

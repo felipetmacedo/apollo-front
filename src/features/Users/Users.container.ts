@@ -19,8 +19,12 @@ export interface UserRow {
 	phone_number: string;
 	document: string;
 	address: string;
+	number: string;
+	complement: string;
+	neighborhood: string;
 	city: string;
 	state: string;
+	cep: string;
 	createdAt: string;
 }
 
@@ -29,7 +33,6 @@ export interface UserFormData {
 	id?: string;
 	name: string;
 	email: string;
-	password: string;
 	phone_number?: string;
 	document: string;
 	cep: string;
@@ -50,10 +53,12 @@ const userToUserRow = (user: User): UserRow => {
 		phone_number: user.phone_number || '',
 		document: user.document || '',
 		address: user.address || '',
+		number: user.number || '',
+		complement: user.complement || '',
+		neighborhood: user.neighborhood || '',
 		city: user.city || '',
 		state: user.state || '',
-		isAdmin: user.isAdmin,
-		teamName: user.team?.name || 'N/A',
+		cep: user.cep || '',
 		createdAt: new Date().toISOString(), // We don't have createdAt from API, this is a placeholder
 	};
 };
@@ -71,7 +76,6 @@ export default function UsersContainer() {
 		try {
 			setLoading(true);
 			const usersData = await getUsers();
-			// Convert User[] to UserRow[]
 			const mappedUsers = usersData.map(userToUserRow);
 			setUsers(mappedUsers);
 		} catch (error) {
@@ -82,9 +86,9 @@ export default function UsersContainer() {
 		}
 	}, []);
 
-	// useEffect(() => {
-	// 	fetchUsers();
-	// }, [fetchUsers]);
+	useEffect(() => {
+		fetchUsers();
+	}, [fetchUsers]);
 
 	// Check if user has specific permission
 	const hasPermission = useCallback(
@@ -197,10 +201,6 @@ export default function UsersContainer() {
 						state: data.state
 					};
 
-					if (data.password) {
-						updatePayload.newPassword = data.password;
-					}
-
 					const updatedUser = await updateUser(editingUser.id, updatePayload);
 					
 					// Convert API response to UserRow
@@ -217,7 +217,6 @@ export default function UsersContainer() {
 					const createPayload: CreateUserPayload = {
 						name: data.name,
 						email: data.email,
-						password: data.password,
 						phone_number: data.phone_number,
 						document: data.document,
 						cep: data.cep,
@@ -234,7 +233,10 @@ export default function UsersContainer() {
 					// Convert API response to UserRow
 					const newUserRow = userToUserRow(newUser);
 
-					setUsers((prevUsers) => [...prevUsers, newUserRow]);
+					setUsers((prevUsers) => [...prevUsers, {
+						...newUserRow,
+						createdAt: new Date().toISOString()
+					}]);
 					toast.success('Usuário criado com sucesso!');
 				}
 

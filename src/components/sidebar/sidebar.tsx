@@ -36,8 +36,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
     const getPermissionLinks = () => {
         const permissionLinks: NavLink[] = [];
 
-        console.log(userInfo?.permissions);
-        
         if (userInfo?.permissions) {
 
             // Check for READ TEAMS permission

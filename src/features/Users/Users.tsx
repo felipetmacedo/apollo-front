@@ -40,19 +40,20 @@ export default function Users() {
 
 	const getUserFormData = () => {
 		if (!editingUser) return null;
-		
+
+		console.log(editingUser);
+
 		return {
 			id: editingUser.id,
 			name: editingUser.name,
 			email: editingUser.email,
-			password: '',
 			phone_number: editingUser.phone_number,
 			document: editingUser.document || '',
-			cep: '', // These values might not be in editingUser if coming from API
+			cep: editingUser.cep || '',
 			address: editingUser.address || '',
-			number: '',
-			complement: '',
-			neighborhood: '',
+			number: editingUser.number || '',
+			complement: editingUser.complement || '',
+			neighborhood: editingUser.neighborhood || '',
 			city: editingUser.city || '',
 			state: editingUser.state || '',
 		};
