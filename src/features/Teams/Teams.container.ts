@@ -1,200 +1,274 @@
-import { useState, useMemo, useCallback } from "react";
-import { toast } from "sonner";
-import { useUserStore } from "@/stores/user.store";
-import { TeamFormData } from "@/components/team/TeamForm";
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useUserStore } from '@/stores/user.store';
+import { TeamFormData } from '@/components/team/TeamForm';
+import {
+	createTeam,
+	getTeams,
+	deleteTeam,
+	updateTeam,
+	TeamResponse,
+} from '@/processes/team';
 
-// Define the Team interface
+// Define the Team interface to match our UI needs and API response
 export interface Team {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  members: number;
-  status: "active" | "inactive";
-  membersLimit: string;
-  leadName: string;
-  leadEmail: string;
-  leadPhone: string;
-  department: string;
-  location: string;
-  startDate: string;
-  tags: string;
+	id: string;
+	cnpj: string;
+	name: string;
+	email: string;
+	address: {
+		number: string;
+		complement?: string;
+		neighborhood: string;
+		city: string;
+		state: string;
+		cep: string;
+		address?: string;
+	};
+	created_at: string;
+	updated_at: string;
 }
 
+// Utility function to convert TeamResponse to Team interface
+const teamResponseToTeam = (teamResponse: TeamResponse): Team => {
+	// Ensure valid date conversion
+	const safeDate = (dateStr: string | undefined): string => {
+		if (!dateStr) return new Date().toISOString();
+
+		// No need for try/catch, just check if the date is valid
+		const date = new Date(dateStr);
+		// Check if date is valid
+		if (!isNaN(date.getTime())) {
+			return date.toISOString();
+		}
+		return new Date().toISOString();
+	};
+
+	return {
+		id: teamResponse.id,
+		cnpj: teamResponse.cnpj,
+		name: teamResponse.name,
+		email: teamResponse.email,
+		address: {
+			number: teamResponse.address.number || '',
+			complement: teamResponse.address.complement || '',
+			neighborhood: teamResponse.address.neighborhood || '',
+			city: teamResponse.address.city || '',
+			state: teamResponse.address.state || '',
+			cep: teamResponse.address.cep || '',
+			address: teamResponse.address.address || ''
+		},
+		created_at: safeDate(teamResponse.createdAt),
+		updated_at: safeDate(teamResponse.updatedAt),
+	};
+};
+
 export default function TeamsContainer() {
-  const { userInfo } = useUserStore();
-  const [teams, setTeams] = useState<Team[]>([
-    {
-      id: "T001",
-      name: "Equipe de Desenvolvimento",
-      description: "Responsável pelo desenvolvimento de produtos",
-      createdAt: new Date(2023, 5, 15).toISOString(),
-      members: 8,
-      status: "active",
-      membersLimit: "10",
-      leadName: "João Silva",
-      leadEmail: "joao@example.com",
-      leadPhone: "(11) 98765-4321",
-      department: "Tecnologia",
-      location: "São Paulo",
-      startDate: "2023-05-15",
-      tags: "desenvolvimento, tecnologia"
-    },
-    {
-      id: "T002",
-      name: "Equipe de Suporte",
-      description: "Responsável pelo suporte ao cliente",
-      createdAt: new Date(2023, 8, 22).toISOString(),
-      members: 5,
-      status: "active",
-      membersLimit: "8",
-      leadName: "Maria Oliveira",
-      leadEmail: "maria@example.com",
-      leadPhone: "(11) 91234-5678",
-      department: "Atendimento",
-      location: "Rio de Janeiro",
-      startDate: "2023-08-22",
-      tags: "suporte, atendimento"
-    },
-    {
-      id: "T003",
-      name: "Equipe de Marketing",
-      description: "Responsável pelas estratégias de marketing",
-      createdAt: new Date(2023, 10, 5).toISOString(),
-      members: 3,
-      status: "inactive",
-      membersLimit: "5",
-      leadName: "Carlos Mendes",
-      leadEmail: "carlos@example.com",
-      leadPhone: "(11) 97777-8888",
-      department: "Marketing",
-      location: "Home Office",
-      startDate: "2023-10-05",
-      tags: "marketing, digital"
-    }
-  ]);
+	const { userInfo } = useUserStore();
+	const [teams, setTeams] = useState<Team[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [searchTerm, setSearchTerm] = useState('');
+	const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+	const [showForm, setShowForm] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
-  const [showForm, setShowForm] = useState(false);
+	// Function to fetch teams from API
+	const fetchTeams = useCallback(async () => {
+		try {
+			setLoading(true);
+			const teamsData = await getTeams();
+			// Convert TeamResponse[] to Team[] using the utility function
+			const mappedTeams = teamsData.map(teamResponseToTeam);
+			setTeams(mappedTeams);
+		} catch (error) {
+			toast.error('Erro ao buscar associações');
+			console.error(error);
+		} finally {
+			setLoading(false);
+		}
+	}, []);
 
-  // Check if user has specific permission
-  const hasPermission = useCallback((permissionName: string, module: string) => {
-    if (!userInfo?.permissions) return false;
-    
-    return userInfo.permissions.some(
-      perm => perm.name === permissionName && perm.module === module
-    );
-  }, [userInfo]);
+	useEffect(() => {
+		fetchTeams();
+	}, [fetchTeams]);
 
-  // Memoized permission checks
-  const canCreateTeam = useMemo(() => hasPermission("CREATE", "TEAMS"), [hasPermission]);
-  const canUpdateTeam = useMemo(() => hasPermission("UPDATE", "TEAMS"), [hasPermission]);
-  const canDeleteTeam = useMemo(() => hasPermission("DELETE", "TEAMS"), [hasPermission]);
+	// Check if user has specific permission
+	const hasPermission = useCallback(
+		(permissionName: string, module: string) => {
+			if (!userInfo?.permissions) return false;
 
-  // Set search term with useCallback
-  const handleSetSearchTerm = useCallback((value: string) => {
-    setSearchTerm(value);
-  }, []);
+			return userInfo.permissions.some(
+				(perm) => perm.name === permissionName && perm.module === module
+			);
+		},
+		[userInfo]
+	);
 
-  // Show/hide form with useCallback
-  const handleShowForm = useCallback((value: boolean) => {
-    setShowForm(value);
-    if (!value) {
-      setEditingTeam(null);
-    }
-  }, []);
+	// Memoized permission checks
+	const canCreateTeam = useMemo(
+		() => hasPermission('CREATE', 'TEAMS'),
+		[hasPermission]
+	);
+	const canUpdateTeam = useMemo(
+		() => hasPermission('UPDATE', 'TEAMS'),
+		[hasPermission]
+	);
+	const canDeleteTeam = useMemo(
+		() => hasPermission('DELETE', 'TEAMS'),
+		[hasPermission]
+	);
 
-  // Edit team handler
-  const handleEditTeam = useCallback((team: Team) => {
-    if (!canUpdateTeam) {
-      toast.error("Você não tem permissão para editar associações.");
-      return;
-    }
-    
-    setEditingTeam(team);
-    setShowForm(true);
-  }, [canUpdateTeam]);
+	// Set search term with useCallback
+	const handleSetSearchTerm = useCallback((value: string) => {
+		setSearchTerm(value);
+	}, []);
 
-  // Delete team handler
-  const handleDeleteTeam = useCallback((id: string) => {
-    if (!canDeleteTeam) {
-      toast.error("Você não tem permissão para excluir associações.");
-      return;
-    }
-    
-    // In a real app, you would call an API to delete the team
-    setTeams(prevTeams => prevTeams.filter(team => team.id !== id));
-    toast.success("Associação excluída com sucesso!");
-  }, [canDeleteTeam]);
+	// Show/hide form with useCallback
+	const handleShowForm = useCallback((value: boolean) => {
+		setShowForm(value);
+		if (!value) {
+			setEditingTeam(null);
+		}
+	}, []);
 
-  // Form submission handler
-  const handleSaveTeam = useCallback((data: TeamFormData) => {
-    // Check permissions based on whether editing or creating
-    if (editingTeam && !canUpdateTeam) {
-      toast.error("Você não tem permissão para editar associações.");
-      return;
-    } else if (!editingTeam && !canCreateTeam) {
-      toast.error("Você não tem permissão para criar associações.");
-      return;
-    }
-    
-    // In a real app, you would call an API to create/update the team
-    if (editingTeam) {
-      setTeams(prevTeams => 
-        prevTeams.map(team => 
-          team.id === editingTeam.id ? { 
-            ...team, 
-            ...data
-          } : team
-        )
-      );
-      toast.success("Associação atualizada com sucesso!");
-    } else {
-      const newTeam: Team = {
-        id: `T${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-        createdAt: new Date().toISOString(),
-        members: 0,
-        ...data
-      };
-      setTeams(prevTeams => [...prevTeams, newTeam]);
-      toast.success("Associação criada com sucesso!");
-    }
-    setShowForm(false);
-    setEditingTeam(null);
-  }, [editingTeam, canCreateTeam, canUpdateTeam]);
+	// Edit team handler
+	const handleEditTeam = useCallback(
+		(team: Team) => {
+			if (!canUpdateTeam) {
+				toast.error('Você não tem permissão para editar associações.');
+				return;
+			}
 
-  // Cancel form handler
-  const handleCancelForm = useCallback(() => {
-    setShowForm(false);
-    setEditingTeam(null);
-  }, []);
+			setEditingTeam(team);
+			setShowForm(true);
+		},
+		[canUpdateTeam]
+	);
 
-  // Memoize the filtered teams to avoid recalculation on every render
-  const filteredTeams = useMemo(() => 
-    teams.filter(team => 
-      team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.leadName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.tags.toLowerCase().includes(searchTerm.toLowerCase())
-    ), 
-    [teams, searchTerm]
-  );
+	// Delete team handler
+	const handleDeleteTeam = useCallback(
+		async (id: string) => {
+			if (!canDeleteTeam) {
+				toast.error('Você não tem permissão para excluir associações.');
+				return;
+			}
 
-  return {
-    teams: filteredTeams,
-    searchTerm,
-    setSearchTerm: handleSetSearchTerm,
-    handleEditTeam,
-    handleDeleteTeam,
-    handleSaveTeam,
-    handleCancelForm,
-    editingTeam,
-    showForm,
-    setShowForm: handleShowForm,
-    canCreateTeam,
-    canUpdateTeam,
-    canDeleteTeam
-  };
-} 
+			try {
+				setLoading(true);
+				await deleteTeam(id);
+				setTeams((prevTeams) =>
+					prevTeams.filter((team) => team.id !== id)
+				);
+				toast.success('Associação excluída com sucesso!');
+			} catch (error) {
+				toast.error('Erro ao excluir associação');
+				console.error(error);
+			} finally {
+				setLoading(false);
+			}
+		},
+		[canDeleteTeam]
+	);
+
+	// Form submission handler
+	const handleSaveTeam = useCallback(
+		async (data: TeamFormData) => {
+			// Check permissions based on whether editing or creating
+			if (editingTeam && !canUpdateTeam) {
+				toast.error('Você não tem permissão para editar associações.');
+				return;
+			} else if (!editingTeam && !canCreateTeam) {
+				toast.error('Você não tem permissão para criar associações.');
+				return;
+			}
+
+			try {
+				setLoading(true);
+
+				if (editingTeam) {
+					// Update existing team
+					const updatedTeamResponse = await updateTeam({
+						id: editingTeam.id,
+						...data,
+					});
+
+					// Convert TeamResponse to Team
+					const updatedTeam = teamResponseToTeam(updatedTeamResponse);
+
+					setTeams((prevTeams) =>
+						prevTeams.map((team) =>
+							team.id === editingTeam.id ? updatedTeam : team
+						)
+					);
+					toast.success('Associação atualizada com sucesso!');
+				} else {
+					// Create new team
+					const newTeamResponse = await createTeam(data);
+
+					// Convert TeamResponse to Team
+					const newTeam = teamResponseToTeam(newTeamResponse);
+
+					setTeams((prevTeams) => [...prevTeams, newTeam]);
+					toast.success('Associação criada com sucesso!');
+				}
+
+				setShowForm(false);
+				setEditingTeam(null);
+			} catch (error) {
+				toast.error(
+					editingTeam
+						? 'Erro ao atualizar associação'
+						: 'Erro ao criar associação'
+				);
+				console.error(error);
+			} finally {
+				setLoading(false);
+			}
+		},
+		[editingTeam, canCreateTeam, canUpdateTeam]
+	);
+
+	// Cancel form handler
+	const handleCancelForm = useCallback(() => {
+		setShowForm(false);
+		setEditingTeam(null);
+	}, []);
+
+	// Memoize the filtered teams to avoid recalculation on every render
+	const filteredTeams = useMemo(
+		() =>
+			teams.filter(
+				(team) =>
+					team.name
+						.toLowerCase()
+						.includes(searchTerm.toLowerCase()) ||
+					team.cnpj
+						.toLowerCase()
+						.includes(searchTerm.toLowerCase()) ||
+					team.email
+						.toLowerCase()
+						.includes(searchTerm.toLowerCase()) ||
+					(team.address.city + ' ' + team.address.state)
+						.toLowerCase()
+						.includes(searchTerm.toLowerCase())
+			),
+		[teams, searchTerm]
+	);
+
+	return {
+		teams: filteredTeams,
+		loading,
+		searchTerm,
+		setSearchTerm: handleSetSearchTerm,
+		handleEditTeam,
+		handleDeleteTeam,
+		handleSaveTeam,
+		handleCancelForm,
+		editingTeam,
+		showForm,
+		setShowForm: handleShowForm,
+		canCreateTeam,
+		canUpdateTeam,
+		canDeleteTeam,
+		refreshTeams: fetchTeams,
+	};
+}

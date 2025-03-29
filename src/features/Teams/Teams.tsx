@@ -1,6 +1,5 @@
-import { Search, Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 import {
 	Table,
@@ -12,15 +11,13 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
 	Dialog,
 	DialogContent,
 	DialogTrigger,
 } from "@/components/ui/dialog";
 
-// Import TeamForm component
-import TeamForm from '@/components/team-form'
+import { TeamForm } from '@/components/team';
 
 // Container
 import useTeamsContainer from './Teams.container';
@@ -28,6 +25,7 @@ import useTeamsContainer from './Teams.container';
 export default function Teams() {
 	const {
 		teams,
+		loading,
 		searchTerm,
 		setSearchTerm,
 		handleEditTeam,
@@ -42,6 +40,25 @@ export default function Teams() {
 		canDeleteTeam
 	} = useTeamsContainer();
 
+	const getTeamFormData = () => {
+		if (!editingTeam) return null;
+		
+		return {
+			id: editingTeam.id,
+			cnpj: editingTeam.cnpj,
+			name: editingTeam.name,
+			email: editingTeam.email,
+			password: '',
+			cep: editingTeam.address.cep,
+			address: '',
+			number: editingTeam.address.number,
+			complement: editingTeam.address.complement || '',
+			neighborhood: editingTeam.address.neighborhood,
+			city: editingTeam.address.city,
+			state: editingTeam.address.state
+		};
+	};
+
 	return (
 		<div className="p-6">
 			<div className="flex justify-between items-center mb-6">
@@ -52,17 +69,23 @@ export default function Teams() {
 					<Dialog open={showForm} onOpenChange={setShowForm}>
 						<DialogTrigger asChild>
 							<Button 
-								className="flex items-center bg-apollo-yellow text-apollo-gray-dark hover:bg-apollo-yellow/90"
+								className="flex items-center"
+								disabled={loading}
 							>
-								<Plus className="h-5 w-5 mr-2" />
+								{loading ? (
+									<Loader2 className="h-5 w-5 mr-2 animate-spin" />
+								) : (
+									<Plus className="h-5 w-5 mr-2" />
+								)}
 								Nova Associação
 							</Button>
 						</DialogTrigger>
 						<DialogContent className="max-w-4xl">
 							<TeamForm
-								team={editingTeam}
+								team={getTeamFormData()}
 								onSave={handleSaveTeam}
 								onCancel={handleCancelForm}
+								isSubmitting={loading}
 							/>
 						</DialogContent>
 					</Dialog>
@@ -74,7 +97,7 @@ export default function Teams() {
 					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-apollo-gray" />
 					<Input
 						type="text"
-						placeholder="Pesquisar por nome, descrição, departamento ou responsável..."
+						placeholder="Pesquisar por nome, CNPJ ou email..."
 						className="w-full pl-10 pr-4 py-2"
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
@@ -87,19 +110,30 @@ export default function Teams() {
 					<TableHeader>
 						<TableRow>
 							<TableHead>ID</TableHead>
+							<TableHead>CNPJ</TableHead>
 							<TableHead>Nome</TableHead>
-							<TableHead>Descrição</TableHead>
-							<TableHead>Departamento</TableHead>
+							<TableHead>Email</TableHead>
+							<TableHead>Cidade/UF</TableHead	>
 							<TableHead>Data de Criação</TableHead>
-							<TableHead>Membros</TableHead>
-							<TableHead>Status</TableHead>
 							{(canUpdateTeam || canDeleteTeam) && (
 								<TableHead className="text-center">Ações</TableHead>
 							)}
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{teams.length === 0 ? (
+						{loading ? (
+							<TableRow>
+								<TableCell
+									colSpan={(canUpdateTeam || canDeleteTeam) ? 8 : 7}
+									className="text-center py-10"
+								>
+									<div className="flex justify-center items-center">
+										<Loader2 className="h-8 w-8 animate-spin text-apollo-yellow" />
+										<span className="ml-2">Carregando...</span>
+									</div>
+								</TableCell>
+							</TableRow>
+						) : teams.length === 0 ? (
 							<TableRow>
 								<TableCell
 									colSpan={(canUpdateTeam || canDeleteTeam) ? 8 : 7}
@@ -114,41 +148,22 @@ export default function Teams() {
 									<TableCell className="font-medium">
 										{team.id}
 									</TableCell>
+									<TableCell>{team.cnpj}</TableCell>
 									<TableCell>{team.name}</TableCell>
-									<TableCell>{team.description}</TableCell>
-									<TableCell>{team.department}</TableCell>
+									<TableCell>{team.email}</TableCell>
+									<TableCell>{`${team.address.city}/${team.address.state}`}</TableCell>
 									<TableCell>
-										{format(
-											new Date(team.createdAt),
-											'dd/MM/yyyy',
-											{
-												locale: ptBR,
+										{(() => {
+											try {
+												const date = new Date(team.created_at);
+												if (!isNaN(date.getTime())) {
+													return format(date, 'dd/MM/yyyy');
+												}
+												return '-';
+											} catch {
+												return '-';
 											}
-										)}
-									</TableCell>
-									<TableCell>{team.members}/{team.membersLimit}</TableCell>
-									<TableCell>
-										<Badge
-											variant={
-												team.status === 'active'
-													? 'default'
-													: 'outline'
-											}
-											className={
-												team.status === 'active'
-													? 'bg-green-100 text-green-800 hover:bg-green-100'
-													: 'bg-red-100 text-red-800 hover:bg-red-100'
-											}
-										>
-											{team.status === 'active' ? (
-												<CheckCircle className="h-3.5 w-3.5 mr-1" />
-											) : (
-												<XCircle className="h-3.5 w-3.5 mr-1" />
-											)}
-											{team.status === 'active'
-												? 'Ativo'
-												: 'Inativo'}
-										</Badge>
+										})()}
 									</TableCell>
 									{(canUpdateTeam || canDeleteTeam) && (
 										<TableCell>
@@ -159,6 +174,7 @@ export default function Teams() {
 														variant="ghost"
 														size="icon"
 														className="h-8 w-8 p-0"
+														disabled={loading}
 													>
 														<Edit className="h-4 w-4 text-apollo-yellow" />
 													</Button>
@@ -169,6 +185,7 @@ export default function Teams() {
 														variant="ghost"
 														size="icon"
 														className="h-8 w-8 p-0"
+														disabled={loading}
 													>
 														<Trash2 className="h-4 w-4 text-red-500" />
 													</Button>

@@ -8,8 +8,6 @@ import { SideBar } from '@/components/sidebar';
 function App() {
 	const { setUserInfo } = useUserStore();
 
-	console.log(setUserInfo);
-
 	const { isLoading } = useQuery({
 		queryKey: ['user'],
 		queryFn: async () => {

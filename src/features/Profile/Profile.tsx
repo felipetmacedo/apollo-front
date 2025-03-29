@@ -48,8 +48,6 @@ export function Profile() {
         queryFn: () => getPayments()
     })
 
-    console.log(payments, 'payments')
-
     const {
         register,
         handleSubmit,

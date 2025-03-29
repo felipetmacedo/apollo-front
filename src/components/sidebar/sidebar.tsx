@@ -24,8 +24,6 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(true);
 
-    console.log(userInfo);
-
     const handleLogout = async () => {
         logout()
 
@@ -37,6 +35,8 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
     // Generate dynamic links based on permissions
     const getPermissionLinks = () => {
         const permissionLinks: NavLink[] = [];
+
+        console.log(userInfo?.permissions);
         
         if (userInfo?.permissions) {
 
