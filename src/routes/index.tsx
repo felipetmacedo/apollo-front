@@ -9,6 +9,7 @@ import Plans from "@/features/Plans";
 import Dashboard from "@/features/Dashboard"
 import Teams from "@/features/Teams";
 import Users from "@/features/Users";
+import Requests from "@/features/Requests";
 
 export const router = createBrowserRouter([
     {
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
             {
                 path: "users",
                 element: <Users />
+            },
+            {
+                path: "requests",
+                element: <Requests />
             }
         ]
     }
