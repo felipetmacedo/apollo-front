@@ -7,6 +7,9 @@ interface LoginCredentials {
 
 interface SignupCredentials extends LoginCredentials {
   name: string
+  document_number: string
+  phone_number: string
+  token?: string
 }
 
 interface User {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { UserCog, LogOut, LayoutDashboard, Users, FileText, UsersRound } from "lucide-react";
+import { UserCog, LogOut, LayoutDashboard, Users, FileText, UsersRound, Link as LinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { logout } from "@/utils/storage";
@@ -78,6 +78,11 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
     ];
     
     const profileAndLogoutLinks: NavLink[] = [
+        {
+            label: "Indicações",
+            href: "/invitation",
+            icon: <LinkIcon className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+        },
         {
             label: "Perfil",
             href: "/profile",

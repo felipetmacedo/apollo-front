@@ -8,6 +8,8 @@ export const loginSchema = yup.object({
 export const signupSchema = yup.object({
     name: yup.string().min(2).required(),
     email: yup.string().email().required(),
+    document_number: yup.string().required('CPF/CNPJ é obrigatório'),
+    phone_number: yup.string().required('Número de telefone é obrigatório'),
     password: yup.string().min(8).required(),
     confirmPassword: yup.string().min(8).required()
 });

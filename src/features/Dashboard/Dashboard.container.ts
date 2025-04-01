@@ -31,7 +31,7 @@ export default function LoginContainer() {
       navigate("/dashboard");
       toast.success("Successfully logged in!");
     } catch {
-      toast.error("Email or password is incorrect!");
+      toast.error("Email ou senha inválidos!");
     } finally {
       setIsLoading(false);
     }

@@ -10,6 +10,8 @@ import Dashboard from "@/features/Dashboard"
 import Teams from "@/features/Teams";
 import Users from "@/features/Users";
 import Requests from "@/features/Requests";
+import Signup from "@/features/Signup";
+import Invitation from "@/features/Invitation";
 
 export const router = createBrowserRouter([
     {
@@ -34,6 +36,10 @@ export const router = createBrowserRouter([
             {
                 path: "/pricing",
                 element: <Plans />
+            },
+            {
+                path: "/register",
+                element: <Signup />
             }
         ]
     },
@@ -60,6 +66,10 @@ export const router = createBrowserRouter([
             {
                 path: "requests",
                 element: <Requests />
+            },
+            {
+                path: "invitation",
+                element: <Invitation />
             }
         ]
     }

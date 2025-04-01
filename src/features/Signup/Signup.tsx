@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -6,12 +5,13 @@ import { Waves } from "@/components/ui/wave-background";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
 import { EyeOffIcon } from "lucide-react";
 import { EyeIcon } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 import useSignupContainer from "./Signup.container";
 
@@ -25,8 +25,22 @@ const Signup = () => {
     showPassword,
     setShowPassword,
     showConfirmPassword,
-    setShowConfirmPassword
+    setShowConfirmPassword,
+    isValidToken
   } = useSignupContainer();
+
+  if (!isValidToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Token de registro inválido ou não fornecido. Por favor, use um link de convite válido.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-1">
@@ -46,22 +60,12 @@ const Signup = () => {
             yGap={36}
           />
         </div>
-
-        <div className="absolute z-10 p-8 left-[0] top-[0]">
-          <h3 className="text-2xl font-bold">Bem-vindo ao Apollo</h3>
-          <span>
-            Crie sua conta para começar
-          </span>
-        </div>
       </div>
-      <div className="flex flex-1 flex-col justify-center px-4 py-12 lg:flex-none sm:px-6 lg:px-8">
+      <div className="flex flex-1 flex-col justify-center px-4 py-12 lg:flex-none sm:px-6 lg:px-8 mt-12">
         <div className="mx-auto w-full max-w-sm min-w-[400px]">
           <Card className="md:min-w-[400px]">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl font-semibold">Crie sua conta</CardTitle>
-              <CardDescription>
-                Crie sua conta para começar
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -70,7 +74,7 @@ const Signup = () => {
                   <Input
                     id="name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Nome"
                     {...register("name")}
                     aria-invalid={errors.name ? "true" : "false"}
                   />
@@ -84,13 +88,41 @@ const Signup = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="youremail@domain.com"
+                    placeholder="exemplo@email.com"
                     {...register("email")}
                     aria-invalid={errors.email ? "true" : "false"}
                   />
                   {errors.email &&
                     <p className="text-sm text-destructive">
                       {errors.email.message}
+                    </p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="document_number">CPF/CNPJ</Label>
+                  <Input
+                    id="document_number"
+                    type="text"
+                    placeholder="000.000.000-00"
+                    {...register("document_number")}
+                    aria-invalid={errors.document_number ? "true" : "false"}
+                  />
+                  {errors.document_number &&
+                    <p className="text-sm text-destructive">
+                      {errors.document_number.message}
+                    </p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone_number">Telefone</Label>
+                  <Input
+                    id="phone_number"
+                    type="text"
+                    placeholder="(00) 00000-0000"
+                    {...register("phone_number")}
+                    aria-invalid={errors.phone_number ? "true" : "false"}
+                  />
+                  {errors.phone_number &&
+                    <p className="text-sm text-destructive">
+                      {errors.phone_number.message}
                     </p>}
                 </div>
                 <div className="space-y-2">
@@ -151,15 +183,6 @@ const Signup = () => {
                   {isPending ? "Criando conta..." : "Criar conta"}
                 </Button>
               </form>
-              <div className="mt-4 text-center text-sm text-muted-foreground">
-                Já tem uma conta?{" "}
-                <Link
-                  to="/login"
-                  className="font-medium text-primary hover:underline"
-                >
-                  Faça login
-                </Link>
-              </div>
             </CardContent>
           </Card>
         </div>

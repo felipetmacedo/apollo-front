@@ -1,8 +1,8 @@
 import * as yup from "yup";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -14,8 +14,25 @@ type SignupFormData = yup.InferType<typeof signupSchema>;
 export default function SignupContainer() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [isValidToken, setIsValidToken] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Extract token from URL search params
+    const searchParams = new URLSearchParams(location.search);
+    const urlToken = searchParams.get('token');
+    
+    if (urlToken) {
+      setToken(urlToken);
+      setIsValidToken(true);
+    } else {
+      toast.error("Token de registro não encontrado. Acesso negado.");
+      navigate('/login');
+    }
+  }, [location, navigate]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<
     SignupFormData
@@ -25,14 +42,22 @@ export default function SignupContainer() {
 
   const { mutate: signupFn, isPending } = useMutation({
     mutationFn: async (credentials: SignupFormData) => {
-      await signup(credentials)
+      // Only proceed if token is valid
+      if (!isValidToken) {
+        throw new Error("Token inválido ou não fornecido");
+      }
+      
+      await signup({
+        ...credentials,
+        token: token || undefined
+      });
     },
     onSuccess: () => {
-      toast.success("Account created successfully!");
+      toast.success("Conta criada com sucesso!");
       navigate("/login");
     },
     onError: () => {
-      toast.error("Failed to create account");
+      toast.error("Falha ao criar conta");
     }
   });
 
@@ -47,6 +72,7 @@ export default function SignupContainer() {
     showPassword,
     setShowPassword,
     showConfirmPassword,
-    setShowConfirmPassword
+    setShowConfirmPassword,
+    isValidToken
   }
 }
