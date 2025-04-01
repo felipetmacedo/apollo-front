@@ -12,6 +12,7 @@ import Users from "@/features/Users";
 import Requests from "@/features/Requests";
 import Signup from "@/features/Signup";
 import Invitation from "@/features/Invitation";
+import ResetPassword from "@/features/ResetPassword";
 
 export const router = createBrowserRouter([
     {
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
             {
                 path: "/register",
                 element: <Signup />
+            },
+            {
+                path: "/reset-password/:token",
+                element: <ResetPassword />
             }
         ]
     },
