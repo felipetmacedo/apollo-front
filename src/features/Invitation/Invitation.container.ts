@@ -31,8 +31,19 @@ export default function InvitationContainer() {
   const handleCopyLink = useCallback(() => {
     if (!invitationLink) return;
     
-    navigator.clipboard.writeText(invitationLink)
-      .then(() => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = invitationLink;
+      textArea.style.position = 'fixed';  // Prevent scrolling to bottom
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      const successful = document.execCommand('copy');
+      
+      document.body.removeChild(textArea);
+      
+      if (successful) {
         setCopied(true);
         toast.success('Link copiado para a área de transferência!');
         
@@ -40,11 +51,13 @@ export default function InvitationContainer() {
         setTimeout(() => {
           setCopied(false);
         }, 2000);
-      })
-      .catch((error) => {
+      } else {
         toast.error('Erro ao copiar link');
-        console.error(error);
-      });
+      }
+    } catch (error) {
+      toast.error('Erro ao copiar link');
+      console.error(error);
+    }
   }, [invitationLink]);
 
   return {
