@@ -1,52 +1,35 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useUserStore } from "@/stores/user.store"
 import { z } from "zod"
-import { updateUser, type UpdateUserPayload } from '@/processes/user'
+import { updateUserProfile } from '@/processes/user'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Subscription } from "./Subscription"
-import { useQuery } from "@tanstack/react-query"
-import { getPayments } from "@/processes/payments"
 
 const updateProfileSchema = z.object({
     name: z.string().optional(),
     email: z.string().email("Invalid email format").optional(),
-    oldPassword: z.string().optional(),
-    newPassword: z.string().optional(),
-    confirmNewPassword: z.string().optional()
-}).refine((data) => {
-    if (data.oldPassword) {
-        return data.newPassword && data.confirmNewPassword
-    }
-    return true
-}, {
-    message: "You must fill in all password fields",
-    path: ["newPassword"]
-}).refine((data) => {
-    if (data.newPassword) {
-        return data.newPassword === data.confirmNewPassword
-    }
-    return true
-}, {
-    message: "Passwords must match",
-    path: ["confirmNewPassword"]
+    phone_number: z.string().optional(),
+    document: z.string().optional(),
+    cep: z.string().optional(),
+    address: z.string().optional(),
+    number: z.string().optional(),
+    complement: z.string().optional(),
+    neighborhood: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
 })
+
 
 type FormData = z.infer<typeof updateProfileSchema>
 
 export function Profile() {
     const userInfo = useUserStore((state) => state.userInfo)
-
-    const { data: payments } = useQuery({
-        queryKey: ['payments'],
-        queryFn: () => getPayments()
-    })
 
     const {
         register,
@@ -58,9 +41,15 @@ export function Profile() {
         defaultValues: {
             name: userInfo?.name,
             email: userInfo?.email,
-            oldPassword: '',
-            newPassword: '',
-            confirmNewPassword: ''
+            phone_number: userInfo?.phone_number,
+            document: userInfo?.document,
+            cep: userInfo?.cep,
+            address: userInfo?.address,
+            number: userInfo?.number,
+            complement: userInfo?.complement,
+            neighborhood: userInfo?.neighborhood,
+            city: userInfo?.city,
+            state: userInfo?.state,
         }
     })
 
@@ -74,53 +63,44 @@ export function Profile() {
 
     const onSubmit = async (data: FormData) => {
         try {
-            const payload: Partial<UpdateUserPayload> = {};
-
-            if (data.name !== userInfo?.name) payload.name = data.name;
-            if (data.email !== userInfo?.email) payload.email = data.email;
-
-
-            if (data.oldPassword) {
-                payload.oldPassword = data.oldPassword;
-                payload.newPassword = data.newPassword;
-                payload.confirmNewPassword = data.confirmNewPassword;
-            }
-
-            if (Object.keys(payload).length === 0) {
-                toast.info("No changes detected");
-                return;
-            }
-
             if (!userInfo?.id) {
-                toast.error("User ID not found");
+                toast.error("ID do usuário não encontrado");
                 return;
             }
 
-            await updateUser(userInfo.id, payload);
+            await updateUserProfile(data);
 
-            toast.success("Profile updated successfully!");
+            toast.success("Perfil atualizado com sucesso!");
 
             reset({
-                oldPassword: "",
-                newPassword: "",
-                confirmNewPassword: ""
+                name: data.name,
+                email: data.email,
+                phone_number: data.phone_number,
+                document: data.document,
+                cep: data.cep,
+                address: data.address,
+                number: data.number,
+                complement: data.complement,
+                neighborhood: data.neighborhood,
+                city: data.city,
+                state: data.state,
             }, { keepValues: true });
 
         } catch {
-            toast.error("Error updating profile");
+            toast.error("Erro ao atualizar perfil");
         }
     };
 
     return (
         <div className="h-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">
             <div className="p-6 w-full">
-                <h1 className="text-2xl font-bold mb-6">Profile</h1>
+                <h1 className="text-2xl font-bold mb-6">Perfil</h1>
 
                 <Tabs defaultValue="general" className="space-y-4">
-                    <TabsList>
-                        <TabsTrigger value="general">General</TabsTrigger>
-                        <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
-                    </TabsList>
+                    {/* <TabsList>
+                        <TabsTrigger value="general">Geral</TabsTrigger>
+                        <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
+                    </TabsList> */}
 
                     <TabsContent value="general" className="space-y-6">
                         <Card>
@@ -134,17 +114,14 @@ export function Profile() {
                                             </AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <h3 className="font-medium">Your avatar</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                PNG or JPG less than 500px in width and height.
-                                            </p>
+                                            <h3 className="font-medium">Seu avatar</h3>
                                         </div>
-                                        <Button type="button" variant="secondary">Add</Button>
+                                        {/* <Button type="button" variant="secondary">Add</Button> */}
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="name">Name</Label>
+                                            <Label htmlFor="name">Nome</Label>
                                             <Input {...register("name")} />
                                             {errors.name && (
                                                 <span className="text-sm text-red-500">{errors.name.message}</span>
@@ -160,30 +137,81 @@ export function Profile() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="oldPassword">Current Password</Label>
-                                            <Input {...register("oldPassword")} type="password" />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="newPassword">New Password</Label>
-                                            <Input {...register("newPassword")} type="password" />
-                                            {errors.newPassword && (
-                                                <span className="text-sm text-red-500">{errors.newPassword.message}</span>
+                                            <Label htmlFor="phone_number">Telefone</Label>
+                                            <Input {...register("phone_number")} />
+                                            {errors.phone_number && (
+                                                <span className="text-sm text-red-500">{errors.phone_number.message}</span>
                                             )}
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
-                                            <Input {...register("confirmNewPassword")} type="password" />
-                                            {errors.confirmNewPassword && (
-                                                <span className="text-sm text-red-500">{errors.confirmNewPassword.message}</span>
+                                            <Label htmlFor="document">Documento</Label>
+                                            <Input {...register("document")} />
+                                            {errors.document && (
+                                                <span className="text-sm text-red-500">{errors.document.message}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="cep">CEP</Label>
+                                            <Input {...register("cep")} />
+                                            {errors.cep && (
+                                                <span className="text-sm text-red-500">{errors.cep.message}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="address">Endereço</Label>
+                                            <Input {...register("address")} />
+                                            {errors.address && (
+                                                <span className="text-sm text-red-500">{errors.address.message}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="number">Número</Label>
+                                            <Input {...register("number")} />
+                                            {errors.number && (
+                                                <span className="text-sm text-red-500">{errors.number.message}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="complement">Complemento</Label>
+                                            <Input {...register("complement")} />
+                                            {errors.complement && (
+                                                <span className="text-sm text-red-500">{errors.complement.message}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="neighborhood">Bairro</Label>
+                                            <Input {...register("neighborhood")} />
+                                            {errors.neighborhood && (
+                                                <span className="text-sm text-red-500">{errors.neighborhood.message}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="city">Cidade</Label>
+                                            <Input {...register("city")} />
+                                            {errors.city && (
+                                                <span className="text-sm text-red-500">{errors.city.message}</span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="state">Estado</Label>
+                                            <Input {...register("state")} />
+                                            {errors.state && (
+                                                <span className="text-sm text-red-500">{errors.state.message}</span>
                                             )}
                                         </div>
                                     </div>
 
                                     <div className="flex justify-end">
                                         <Button type="submit" disabled={isSubmitting}>
-                                            {isSubmitting ? "Saving..." : "Save changes"}
+                                            {isSubmitting ? "Salvando..." : "Salvar alterações"}
                                         </Button>
                                     </div>
                                 </form>
@@ -191,9 +219,9 @@ export function Profile() {
                         </Card>
                     </TabsContent>
 
-                    <TabsContent value="subscriptions" className="space-y-6">
+                    {/* <TabsContent value="subscriptions" className="space-y-6">
                         <Subscription billingHistory={payments} />
-                    </TabsContent>
+                    </TabsContent> */}
                 </Tabs>
             </div>
         </div>

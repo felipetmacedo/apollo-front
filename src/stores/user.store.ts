@@ -6,8 +6,15 @@ export interface UserInfo {
   email: string
   name: string
   phone_number: string
+  document: string
+  address: string
+  number: string
+  complement: string
+  neighborhood: string
+  city: string
+  state: string
+  cep: string
   isAdmin: boolean
-  isProPlan: boolean
   permissions: {
     id: string
     name: string

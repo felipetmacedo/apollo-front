@@ -16,7 +16,14 @@ function App() {
 			if (userInfo) {
 				setUserInfo({
 					...userInfo,
-					isProPlan: false,
+					document: userInfo.document || "",
+					address: userInfo.address || "",
+					cep: userInfo.cep || "",
+					number: userInfo.number || "",
+					complement: userInfo.complement || "",
+					neighborhood: userInfo.neighborhood || "",
+					city: userInfo.city || "",
+					state: userInfo.state || "",
 					permissions: userInfo.permissions.map((permission: any) => ({
 						id: permission.id,
 						name: permission.name,

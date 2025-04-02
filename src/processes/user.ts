@@ -76,6 +76,12 @@ export const updateUser = async (userId: string, payload: UpdateUserPayload): Pr
   return data;
 }
 
+export const updateUserProfile = async (payload: UpdateUserPayload): Promise<User> => {
+  const { data } = await api.put<User>('/user', payload);
+
+  return data;
+}
+
 export const getUsers = async (page: number = 1, itemsPerPage: number = 10): Promise<PaginatedUsersResponse> => {
   const { data } = await api.get<PaginatedUsersResponse>('/user', {
     params: {
