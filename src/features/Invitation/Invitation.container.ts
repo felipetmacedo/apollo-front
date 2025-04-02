@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useUserStore } from '@/stores/user.store';
-import { getInvitationLink } from '@/processes/invitation';
+import { getInvitationLink, getInvitedUsers } from '@/processes/invitation';
+import { useQuery } from '@tanstack/react-query';
 
 export default function InvitationContainer() {
   const { userInfo } = useUserStore();
@@ -26,6 +27,12 @@ export default function InvitationContainer() {
 
     fetchInvitationLink();
   }, []);
+
+  // Fetch paginated invited users
+  const { data: invitedUsersData, isLoading: isUsersLoading } = useQuery({
+    queryKey: ['invitedUsers'],
+    queryFn: () => getInvitedUsers(),
+  });
 
   // Handle copy link to clipboard
   const handleCopyLink = useCallback(() => {
@@ -62,9 +69,10 @@ export default function InvitationContainer() {
 
   return {
     invitationLink,
-    loading,
+    loading: loading || isUsersLoading,
     copied,
     handleCopyLink,
-    userInfo
+    userInfo,
+    invitedUsers: invitedUsersData?.items || [],
   };
 } 
