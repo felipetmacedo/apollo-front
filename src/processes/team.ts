@@ -36,13 +36,26 @@ export interface TeamResponse {
   updatedAt: string;
 }
 
+export interface PaginatedTeamsResponse {
+  items: TeamResponse[];
+  total: number;
+  page: number;
+  totalPages: number;
+  itemsPerPage: number;
+}
+
 export const createTeam = async (data: TeamCreateData): Promise<TeamResponse> => {
   const response = await api.post('/team', data);
   return response.data;
 };
 
-export const getTeams = async (): Promise<TeamResponse[]> => {
-  const response = await api.get('/team/all');
+export const getTeams = async (page: number = 1, itemsPerPage: number = 10): Promise<PaginatedTeamsResponse> => {
+  const response = await api.get('/team/all', {
+    params: {
+      page,
+      items_per_page: itemsPerPage
+    }
+  });
   return response.data;
 };
 

@@ -29,7 +29,7 @@ export default function LoginContainer() {
       saveSession({ token: response.token });
 
       navigate("/dashboard");
-      toast.success("Successfully logged in!");
+      toast.success("Login realizado com sucesso!");
     } catch {
       toast.error("Email ou senha inválidos!");
     } finally {

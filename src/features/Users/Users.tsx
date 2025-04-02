@@ -15,6 +15,14 @@ import {
 	DialogContent,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+	Pagination,
+	PaginationContent,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from "@/components/ui/pagination";
 
 import { UserForm } from '@/components/user';
 
@@ -35,7 +43,10 @@ export default function Users() {
 		setShowForm,
 		canCreateUser,
 		canUpdateUser,
-		canDeleteUser
+		canDeleteUser,
+		page,
+		totalPages,
+		handlePageChange
 	} = UsersContainer();
 
 	const getUserFormData = () => {
@@ -57,6 +68,86 @@ export default function Users() {
 			city: editingUser.city || '',
 			state: editingUser.state || '',
 		};
+	};
+
+	// Generate pagination items
+	const renderPaginationItems = () => {
+		const items = [];
+		
+		// Calculate start and end pages to show (show 5 page numbers max)
+		let startPage = Math.max(1, page - 2);
+		const endPage = Math.min(totalPages, startPage + 4);
+		
+		// Adjust if we're near the end
+		if (endPage - startPage < 4 && totalPages > 5) {
+			startPage = Math.max(1, endPage - 4);
+		}
+		
+		// First page
+		if (startPage > 1) {
+			items.push(
+				<PaginationItem key="1">
+					<PaginationLink 
+						isActive={page === 1} 
+						onClick={() => handlePageChange(1)}
+					>
+						1
+					</PaginationLink>
+				</PaginationItem>
+			);
+			
+			// Add ellipsis if there's a gap
+			if (startPage > 2) {
+				items.push(
+					<PaginationItem key="ellipsis-1">
+						<PaginationLink 
+							className="cursor-default pointer-events-none"
+						>...</PaginationLink>
+					</PaginationItem>
+				);
+			}
+		}
+		
+		// Page numbers
+		for (let i = startPage; i <= endPage; i++) {
+			items.push(
+				<PaginationItem key={i}>
+					<PaginationLink 
+						isActive={page === i} 
+						onClick={() => handlePageChange(i)}
+					>
+						{i}
+					</PaginationLink>
+				</PaginationItem>
+			);
+		}
+		
+		// Last page
+		if (endPage < totalPages) {
+			// Add ellipsis if there's a gap
+			if (endPage < totalPages - 1) {
+				items.push(
+					<PaginationItem key="ellipsis-2">
+						<PaginationLink 
+							className="cursor-default pointer-events-none"
+						>...</PaginationLink>
+					</PaginationItem>
+				);
+			}
+			
+			items.push(
+				<PaginationItem key={totalPages}>
+					<PaginationLink 
+						isActive={page === totalPages} 
+						onClick={() => handlePageChange(totalPages)}
+					>
+						{totalPages}
+					</PaginationLink>
+				</PaginationItem>
+			);
+		}
+		
+		return items;
 	};
 
 	return (
@@ -186,6 +277,28 @@ export default function Users() {
 						)}
 					</TableBody>
 				</Table>
+			</div>
+
+			<div className="mt-6 mb-4 flex justify-center">
+				<Pagination>
+					<PaginationContent>
+						<PaginationItem>
+							<PaginationPrevious 
+								onClick={() => handlePageChange(Math.max(1, page - 1))}
+								className={page === 1 || loading ? "pointer-events-none opacity-50" : ""}
+							/>
+						</PaginationItem>
+						
+						{renderPaginationItems()}
+						
+						<PaginationItem>
+							<PaginationNext 
+								onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+								className={page === totalPages || loading ? "pointer-events-none opacity-50" : ""}
+							/>
+						</PaginationItem>
+					</PaginationContent>
+				</Pagination>
 			</div>
 		</div>
 	);

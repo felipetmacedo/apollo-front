@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useUserStore } from '@/stores/user.store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
 	getUsers,
 	createUser,
@@ -65,30 +66,46 @@ const userToUserRow = (user: User): UserRow => {
 
 export default function UsersContainer() {
 	const { userInfo } = useUserStore();
-	const [users, setUsers] = useState<UserRow[]>([]);
-	const [loading, setLoading] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [editingUser, setEditingUser] = useState<UserRow | null>(null);
 	const [showForm, setShowForm] = useState(false);
+	const [page, setPage] = useState(1);
+	const [itemsPerPage, setItemsPerPage] = useState(10);
+	const queryClient = useQueryClient();
 
-	// Function to fetch users from API
-	const fetchUsers = useCallback(async () => {
-		try {
-			setLoading(true);
-			const usersData = await getUsers();
-			const mappedUsers = usersData.map(userToUserRow);
-			setUsers(mappedUsers);
-		} catch (error) {
-			toast.error('Erro ao buscar usuários');
-			console.error(error);
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+	// Use react-query to fetch users with pagination
+	const { data, isLoading } = useQuery({
+		queryKey: ['users', page, itemsPerPage],
+		queryFn: () => getUsers(page, itemsPerPage),
+	});
 
-	useEffect(() => {
-		fetchUsers();
-	}, [fetchUsers]);
+	// Create mutation
+	const createMutation = useMutation({
+		mutationFn: createUser,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['users'] });
+			toast.success('Usuário criado com sucesso!');
+		},
+	});
+
+	// Update mutation
+	const updateMutation = useMutation({
+		mutationFn: (params: { id: string; data: UpdateUserPayload }) => 
+			updateUser(params.id, params.data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['users'] });
+			toast.success('Usuário atualizado com sucesso!');
+		},
+	});
+
+	// Delete mutation
+	const deleteMutation = useMutation({
+		mutationFn: deleteUser,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['users'] });
+			toast.success('Usuário excluído com sucesso!');
+		},
+	});
 
 	// Check if user has specific permission
 	const hasPermission = useCallback(
@@ -154,20 +171,13 @@ export default function UsersContainer() {
 			}
 
 			try {
-				setLoading(true);
-				await deleteUser(id);
-				setUsers((prevUsers) =>
-					prevUsers.filter((user) => user.id !== id)
-				);
-				toast.success('Usuário excluído com sucesso!');
+				deleteMutation.mutate(id);
 			} catch (error) {
 				toast.error('Erro ao excluir usuário');
 				console.error(error);
-			} finally {
-				setLoading(false);
 			}
 		},
-		[canDeleteUser]
+		[canDeleteUser, deleteMutation]
 	);
 
 	// Form submission handler
@@ -183,8 +193,6 @@ export default function UsersContainer() {
 			}
 
 			try {
-				setLoading(true);
-
 				if (editingUser) {
 					// Update existing user
 					const updatePayload: UpdateUserPayload = {
@@ -201,17 +209,7 @@ export default function UsersContainer() {
 						state: data.state
 					};
 
-					const updatedUser = await updateUser(editingUser.id, updatePayload);
-					
-					// Convert API response to UserRow
-					const updatedUserRow = userToUserRow(updatedUser);
-
-					setUsers((prevUsers) =>
-						prevUsers.map((user) =>
-							user.id === editingUser.id ? updatedUserRow : user
-						)
-					);
-					toast.success('Usuário atualizado com sucesso!');
+					updateMutation.mutate({ id: editingUser.id, data: updatePayload });
 				} else {
 					// Create new user
 					const createPayload: CreateUserPayload = {
@@ -228,16 +226,7 @@ export default function UsersContainer() {
 						state: data.state
 					};
 
-					const newUser = await createUser(createPayload);
-					
-					// Convert API response to UserRow
-					const newUserRow = userToUserRow(newUser);
-
-					setUsers((prevUsers) => [...prevUsers, {
-						...newUserRow,
-						createdAt: new Date().toISOString()
-					}]);
-					toast.success('Usuário criado com sucesso!');
+					createMutation.mutate(createPayload);
 				}
 
 				setShowForm(false);
@@ -249,18 +238,27 @@ export default function UsersContainer() {
 						: 'Erro ao criar usuário'
 				);
 				console.error(error);
-			} finally {
-				setLoading(false);
 			}
 		},
-		[editingUser, canCreateUser, canUpdateUser]
+		[editingUser, canCreateUser, canUpdateUser, createMutation, updateMutation]
 	);
 
-	// Cancel form handler
-	const handleCancelForm = useCallback(() => {
-		setShowForm(false);
-		setEditingUser(null);
+	// Handle page change
+	const handlePageChange = useCallback((newPage: number) => {
+		setPage(newPage);
 	}, []);
+
+	// Handle page size change
+	const handleItemsPerPageChange = useCallback((newPageSize: number) => {
+		setItemsPerPage(newPageSize);
+		setPage(1); // Reset to first page when changing page size
+	}, []);
+
+	// Derive users array from the paginated response
+	const users = useMemo(() => {
+		if (!data) return [];
+		return data.items.map(userToUserRow);
+	}, [data]);
 
 	// Memoize the filtered users to avoid recalculation on every render
 	const filteredUsers = useMemo(
@@ -270,14 +268,17 @@ export default function UsersContainer() {
 					user.name
 						.toLowerCase()
 						.includes(searchTerm.toLowerCase()) ||
+					user.document
+						.toLowerCase()
+						.includes(searchTerm.toLowerCase()) ||
 					user.email
 						.toLowerCase()
 						.includes(searchTerm.toLowerCase()) ||
 					user.phone_number
-						?.toLowerCase()
+						.toLowerCase()
 						.includes(searchTerm.toLowerCase()) ||
-					user.document
-						?.toLowerCase()
+					(user.city + ' ' + user.state)
+						.toLowerCase()
 						.includes(searchTerm.toLowerCase())
 			),
 		[users, searchTerm]
@@ -285,19 +286,24 @@ export default function UsersContainer() {
 
 	return {
 		users: filteredUsers,
-		loading,
+		loading: isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
 		searchTerm,
 		setSearchTerm: handleSetSearchTerm,
 		handleEditUser,
 		handleDeleteUser,
 		handleSaveUser,
-		handleCancelForm,
+		handleCancelForm: () => setShowForm(false),
 		editingUser,
 		showForm,
 		setShowForm: handleShowForm,
 		canCreateUser,
 		canUpdateUser,
 		canDeleteUser,
-		refreshUsers: fetchUsers,
+		page,
+		itemsPerPage,
+		handlePageChange,
+		handleItemsPerPageChange,
+		totalItems: data?.total || 0,
+		totalPages: data?.totalPages || 1
 	};
 } 

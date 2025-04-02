@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useUserStore } from '@/stores/user.store';
 import { TeamFormData } from '@/components/team/TeamForm';
@@ -7,8 +7,9 @@ import {
 	getTeams,
 	deleteTeam,
 	updateTeam,
-	TeamResponse,
+	TeamResponse
 } from '@/processes/team';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Define the Team interface to match our UI needs and API response
 export interface Team {
@@ -65,31 +66,49 @@ const teamResponseToTeam = (teamResponse: TeamResponse): Team => {
 
 export default function TeamsContainer() {
 	const { userInfo } = useUserStore();
-	const [teams, setTeams] = useState<Team[]>([]);
-	const [loading, setLoading] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 	const [showForm, setShowForm] = useState(false);
+	const [page, setPage] = useState(1);
+	const [itemsPerPage] = useState(1);
+	const queryClient = useQueryClient();
 
-	// Function to fetch teams from API
-	const fetchTeams = useCallback(async () => {
-		try {
-			setLoading(true);
-			const teamsData = await getTeams();
-			// Convert TeamResponse[] to Team[] using the utility function
-			const mappedTeams = teamsData.map(teamResponseToTeam);
-			setTeams(mappedTeams);
-		} catch (error) {
-			toast.error('Erro ao buscar associações');
-			console.error(error);
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+	// Use react-query to fetch teams with pagination
+	const { data, isLoading } = useQuery({
+		queryKey: ['teams', page, itemsPerPage],
+		queryFn: () => getTeams(page, itemsPerPage),
+	});
 
-	useEffect(() => {
-		fetchTeams();
-	}, [fetchTeams]);
+	// Directly manage pagination state
+	const currentPage = page;
+	const currentTotalPages = data?.totalPages || 1;
+
+	// Create mutation
+	const createMutation = useMutation({
+		mutationFn: createTeam,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['teams'] });
+			toast.success('Líder criado com sucesso!');
+		},
+	});
+
+	// Update mutation
+	const updateMutation = useMutation({
+		mutationFn: updateTeam,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['teams'] });
+			toast.success('Líder atualizado com sucesso!');
+		},
+	});
+
+	// Delete mutation
+	const deleteMutation = useMutation({
+		mutationFn: deleteTeam,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['teams'] });
+			toast.success('Líder excluído com sucesso!');
+		},
+	});
 
 	// Check if user has specific permission
 	const hasPermission = useCallback(
@@ -134,7 +153,7 @@ export default function TeamsContainer() {
 	const handleEditTeam = useCallback(
 		(team: Team) => {
 			if (!canUpdateTeam) {
-				toast.error('Você não tem permissão para editar associações.');
+				toast.error('Você não tem permissão para editar líderes.');
 				return;
 			}
 
@@ -148,25 +167,18 @@ export default function TeamsContainer() {
 	const handleDeleteTeam = useCallback(
 		async (id: string) => {
 			if (!canDeleteTeam) {
-				toast.error('Você não tem permissão para excluir associações.');
+				toast.error('Você não tem permissão para excluir líderes.');
 				return;
 			}
 
 			try {
-				setLoading(true);
-				await deleteTeam(id);
-				setTeams((prevTeams) =>
-					prevTeams.filter((team) => team.id !== id)
-				);
-				toast.success('Associação excluída com sucesso!');
+				deleteMutation.mutate(id);
 			} catch (error) {
-				toast.error('Erro ao excluir associação');
+				toast.error('Erro ao excluir líder');
 				console.error(error);
-			} finally {
-				setLoading(false);
 			}
 		},
-		[canDeleteTeam]
+		[canDeleteTeam, deleteMutation]
 	);
 
 	// Form submission handler
@@ -174,41 +186,23 @@ export default function TeamsContainer() {
 		async (data: TeamFormData) => {
 			// Check permissions based on whether editing or creating
 			if (editingTeam && !canUpdateTeam) {
-				toast.error('Você não tem permissão para editar associações.');
+				toast.error('Você não tem permissão para editar líderes.');
 				return;
 			} else if (!editingTeam && !canCreateTeam) {
-				toast.error('Você não tem permissão para criar associações.');
+				toast.error('Você não tem permissão para criar líderes.');
 				return;
 			}
 
 			try {
-				setLoading(true);
-
 				if (editingTeam) {
 					// Update existing team
-					const updatedTeamResponse = await updateTeam({
+					updateMutation.mutate({
 						id: editingTeam.id,
 						...data,
 					});
-
-					// Convert TeamResponse to Team
-					const updatedTeam = teamResponseToTeam(updatedTeamResponse);
-
-					setTeams((prevTeams) =>
-						prevTeams.map((team) =>
-							team.id === editingTeam.id ? updatedTeam : team
-						)
-					);
-					toast.success('Associação atualizada com sucesso!');
 				} else {
 					// Create new team
-					const newTeamResponse = await createTeam(data);
-
-					// Convert TeamResponse to Team
-					const newTeam = teamResponseToTeam(newTeamResponse);
-
-					setTeams((prevTeams) => [...prevTeams, newTeam]);
-					toast.success('Associação criada com sucesso!');
+					createMutation.mutate(data);
 				}
 
 				setShowForm(false);
@@ -216,15 +210,13 @@ export default function TeamsContainer() {
 			} catch (error) {
 				toast.error(
 					editingTeam
-						? 'Erro ao atualizar associação'
-						: 'Erro ao criar associação'
+						? 'Erro ao atualizar líder'
+						: 'Erro ao criar líder'
 				);
 				console.error(error);
-			} finally {
-				setLoading(false);
 			}
 		},
-		[editingTeam, canCreateTeam, canUpdateTeam]
+		[editingTeam, canCreateTeam, canUpdateTeam, createMutation, updateMutation]
 	);
 
 	// Cancel form handler
@@ -232,6 +224,17 @@ export default function TeamsContainer() {
 		setShowForm(false);
 		setEditingTeam(null);
 	}, []);
+
+	// Handle page change
+	const handlePageChange = useCallback((newPage: number) => {
+		setPage(newPage);
+	}, []);
+
+	// Derive teams array from the paginated response
+	const teams = useMemo(() => {
+		if (!data) return [];
+		return data.items.map(teamResponseToTeam);
+	}, [data]);
 
 	// Memoize the filtered teams to avoid recalculation on every render
 	const filteredTeams = useMemo(
@@ -256,7 +259,7 @@ export default function TeamsContainer() {
 
 	return {
 		teams: filteredTeams,
-		loading,
+		loading: isLoading || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
 		searchTerm,
 		setSearchTerm: handleSetSearchTerm,
 		handleEditTeam,
@@ -269,6 +272,10 @@ export default function TeamsContainer() {
 		canCreateTeam,
 		canUpdateTeam,
 		canDeleteTeam,
-		refreshTeams: fetchTeams,
+		page: currentPage,
+		itemsPerPage,
+		handlePageChange,
+		totalItems: data?.total || 0,
+		totalPages: currentTotalPages
 	};
 }

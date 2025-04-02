@@ -21,6 +21,14 @@ export interface User {
   }
 }
 
+export interface PaginatedUsersResponse {
+  items: User[];
+  total: number;
+  page: number;
+  totalPages: number;
+  itemsPerPage: number;
+}
+
 export interface UpdateUserPayload {
   name?: string
   email?: string
@@ -68,8 +76,13 @@ export const updateUser = async (userId: string, payload: UpdateUserPayload): Pr
   return data;
 }
 
-export const getUsers = async (): Promise<User[]> => {
-  const { data } = await api.get<User[]>('/user');
+export const getUsers = async (page: number = 1, itemsPerPage: number = 10): Promise<PaginatedUsersResponse> => {
+  const { data } = await api.get<PaginatedUsersResponse>('/user', {
+    params: {
+      page,
+      items_per_page: itemsPerPage
+    }
+  });
   return data;
 }
 
