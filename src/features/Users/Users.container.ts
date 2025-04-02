@@ -86,6 +86,10 @@ export default function UsersContainer() {
 			queryClient.invalidateQueries({ queryKey: ['users'] });
 			toast.success('Usuário criado com sucesso!');
 		},
+		onError: (error) => {
+			toast.error('Erro ao criar usuário');
+			console.error(error);
+		},
 	});
 
 	// Update mutation

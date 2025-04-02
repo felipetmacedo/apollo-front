@@ -70,7 +70,7 @@ export default function TeamsContainer() {
 	const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 	const [showForm, setShowForm] = useState(false);
 	const [page, setPage] = useState(1);
-	const [itemsPerPage] = useState(1);
+	const [itemsPerPage] = useState(10);
 	const queryClient = useQueryClient();
 
 	// Use react-query to fetch teams with pagination
@@ -89,6 +89,10 @@ export default function TeamsContainer() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['teams'] });
 			toast.success('Líder criado com sucesso!');
+		},
+		onError: (error) => {
+			toast.error('Erro ao criar líder');
+			console.error(error);
 		},
 	});
 
