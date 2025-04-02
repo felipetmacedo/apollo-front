@@ -100,6 +100,10 @@ export default function UsersContainer() {
 			queryClient.invalidateQueries({ queryKey: ['users'] });
 			toast.success('Usuário atualizado com sucesso!');
 		},
+		onError: (error) => {
+			toast.error('Erro ao atualizar usuário');
+			console.error(error);
+		},
 	});
 
 	// Delete mutation
@@ -108,6 +112,10 @@ export default function UsersContainer() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['users'] });
 			toast.success('Usuário excluído com sucesso!');
+		},
+		onError: (error) => {
+			toast.error('Erro ao excluir usuário');
+			console.error(error);
 		},
 	});
 

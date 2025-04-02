@@ -103,6 +103,10 @@ export default function TeamsContainer() {
 			queryClient.invalidateQueries({ queryKey: ['teams'] });
 			toast.success('Líder atualizado com sucesso!');
 		},
+		onError: (error) => {
+			toast.error('Erro ao atualizar líder');
+			console.error(error);
+		},
 	});
 
 	// Delete mutation
@@ -111,6 +115,10 @@ export default function TeamsContainer() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['teams'] });
 			toast.success('Líder excluído com sucesso!');
+		},
+		onError: (error) => {
+			toast.error('Erro ao excluir líder');
+			console.error(error);
 		},
 	});
 
