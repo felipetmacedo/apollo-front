@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useCallback } from 'react';
+import InputMask from 'react-input-mask';
 
 import {
   Form,
@@ -178,7 +179,9 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isSubmittin
               <FormItem>
                 <FormLabel>Telefone</FormLabel>
                 <FormControl>
-                  <Input placeholder="(00) 00000-0000" {...field} />
+                  <InputMask mask="(99)99999-9999" {...field}>
+                    {(inputProps: React.InputHTMLAttributes<HTMLInputElement>) => <Input placeholder="(00) 00000-0000" {...inputProps} />}
+                  </InputMask>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -192,11 +195,9 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isSubmittin
               <FormItem>
                 <FormLabel>CEP</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="00000-000"
-                    {...field}
-                    className={loadingAddress ? 'bg-gray-100' : ''}
-                  />
+                  <InputMask mask="99999-999" {...field}>
+                    {(inputProps: React.InputHTMLAttributes<HTMLInputElement>) => <Input placeholder="00000-000" {...inputProps} className={loadingAddress ? 'bg-gray-100' : ''} />}
+                  </InputMask>
                 </FormControl>
                 {loadingAddress && (
                   <p className="text-xs text-gray-500">

@@ -15,6 +15,7 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import InputMask from 'react-input-mask';
 
 // Form utilities
 import {
@@ -144,10 +145,9 @@ const TeamForm: React.FC<TeamFormProps> = ({ team, onSave, onCancel, isSubmittin
 								<FormItem>
 									<FormLabel>CNPJ</FormLabel>
 									<FormControl>
-										<Input
-											placeholder="00.000.000/0000-00"
-											{...field}
-										/>
+										<InputMask mask="99.999.999/9999-99" {...field}>
+											{(inputProps: React.InputHTMLAttributes<HTMLInputElement>) => <Input placeholder="00.000.000/0000-00" {...inputProps} />}
+										</InputMask>
 									</FormControl>
 									<FormMessage />
 								</FormItem>
@@ -196,15 +196,9 @@ const TeamForm: React.FC<TeamFormProps> = ({ team, onSave, onCancel, isSubmittin
 								<FormItem>
 									<FormLabel>CEP</FormLabel>
 									<FormControl>
-										<Input
-											placeholder="00000-000"
-											{...field}
-											className={
-												loadingAddress
-													? 'bg-gray-100'
-													: ''
-											}
-										/>
+										<InputMask mask="99999-999" {...field}>
+											{(inputProps: React.InputHTMLAttributes<HTMLInputElement>) => <Input placeholder="00000-000" {...inputProps} className={loadingAddress ? 'bg-gray-100' : ''} />}
+										</InputMask>
 									</FormControl>
 									{loadingAddress && (
 										<p className="text-xs text-gray-500">
