@@ -159,10 +159,10 @@ const TeamForm: React.FC<TeamFormProps> = ({ team, onSave, onCancel, isSubmittin
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Nome da Associação</FormLabel>
+									<FormLabel>Nome do Líder</FormLabel>
 									<FormControl>
 										<Input
-											placeholder="Digite o nome da associação"
+											placeholder="Digite o nome do líder"
 											{...field}
 										/>
 									</FormControl>

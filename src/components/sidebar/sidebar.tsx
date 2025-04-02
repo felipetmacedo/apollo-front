@@ -41,7 +41,7 @@ export default function SideBar({ children }: { children: React.ReactNode }) {
             // Check for READ TEAMS permission
             if (userInfo.permissions.some(perm => perm.name === 'READ' && perm.module === 'TEAMS')) {
                 permissionLinks.push({
-                    label: "Associações",
+                    label: "Líderes",
                     href: "/teams",
                     icon: <UsersRound className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
                 });

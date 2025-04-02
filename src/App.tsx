@@ -35,7 +35,7 @@ function App() {
 				<div className="flex flex-col items-center gap-2">
 					<Loader className="h-8 w-8 animate-spin" />
 					<span className="text-sm text-muted-foreground">
-						Loading your information...
+						Carregando informações...
 					</span>
 				</div>
 			</div>

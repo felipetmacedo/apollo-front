@@ -60,6 +60,7 @@ src/
 ### Dev Guidelines:
 
 - All components must use `shadcn/ui` only.
+- Use reatc query and invalidate when creating new data.
 - Every handler or utility function must be wrapped in `useCallback`.
 - Derived or computed values must use `useMemo`.
 - Avoid inline functions in JSX.
