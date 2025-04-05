@@ -2,6 +2,7 @@ import api from '@/api';
 
 export interface InvitationLinkResponse {
 	link: string;
+	token: string;
 }
 
 export const getInvitationLink = async (): Promise<InvitationLinkResponse> => {

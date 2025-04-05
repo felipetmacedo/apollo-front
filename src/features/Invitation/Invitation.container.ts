@@ -16,7 +16,7 @@ export default function InvitationContainer() {
       try {
         setLoading(true);
         const response = await getInvitationLink();
-        setInvitationLink(response.link);
+        setInvitationLink(response.token ? `${window.location.origin}/register?token=${response.token}` : response.link);
       } catch (error) {
         toast.error('Erro ao buscar link de convite');
         console.error(error);
