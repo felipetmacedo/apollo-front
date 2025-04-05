@@ -56,8 +56,12 @@ export default function SignupContainer() {
       toast.success("Conta criada com sucesso!");
       navigate("/login");
     },
-    onError: () => {
-      toast.error("Falha ao criar conta");
+    onError: (error) => {
+      if (error.message === "Já existe um usuário com este email ou CPF.") {
+        toast.error(error.message);
+      } else {
+        toast.error("Falha ao criar conta");
+      }
     }
   });
 

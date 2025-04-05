@@ -12,6 +12,7 @@ import { EyeOffIcon } from "lucide-react";
 import { EyeIcon } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import InputMask from 'react-input-mask';
 
 import useSignupContainer from "./Signup.container";
 
@@ -113,13 +114,9 @@ const Signup = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone_number">Telefone</Label>
-                  <Input
-                    id="phone_number"
-                    type="text"
-                    placeholder="(00) 00000-0000"
-                    {...register("phone_number")}
-                    aria-invalid={errors.phone_number ? "true" : "false"}
-                  />
+                  <InputMask mask="(99)99999-9999" {...register("phone_number")}>
+                    {(inputProps: React.InputHTMLAttributes<HTMLInputElement>) => <Input placeholder="(00) 00000-0000" {...inputProps} />}
+                  </InputMask>
                   {errors.phone_number &&
                     <p className="text-sm text-destructive">
                       {errors.phone_number.message}

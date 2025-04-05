@@ -1,4 +1,4 @@
-import { Gift, Link, Copy, Check, Loader2, CalendarIcon } from 'lucide-react';
+import { Gift, Link, Loader2, CalendarIcon } from 'lucide-react';
 
 import {
   Card,
@@ -62,13 +62,6 @@ export default function Invitation() {
                   disabled={loading}
                   className={copied ? "bg-green-600 hover:bg-green-700" : ""}
                 >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : copied ? (
-                    <Check className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Copy className="h-4 w-4 mr-2" />
-                  )}
                   {copied ? "Copiado!" : "Copiar"}
                 </Button>
               </div>
@@ -81,7 +74,7 @@ export default function Invitation() {
         </Card>
       </div>
 
-      <div className="w-full space-y-4">
+      <div className="w-full space-y-4 max-h-[600px] overflow-y-auto pr-2 pb-2">
         {loading ? (
           <div className="flex justify-center items-center py-10">
             <Loader2 className="h-8 w-8 animate-spin text-apollo-yellow" />
